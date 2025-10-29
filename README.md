@@ -24,7 +24,7 @@ Architecture follows a **Star Schema** and UX is designed around **Cards → Tre
 ---
 
 ## Data Model (Star Schema — Olist)
-![Star Schema](Assets/DataModel.jpg)
+![Star Schema](./Assets/Relationship.jpg)
 
 **Grain**
 - `Fact_orders_dataset`: one row per order.  
@@ -37,17 +37,17 @@ Architecture follows a **Star Schema** and UX is designed around **Cards → Tre
 
 ## Pages & Story Flow
 1. **Sales Overview** – KPI cards, orders/sales trend, category split. 
-![Overview](Assets/OverView.jpg)
+![Overview](./Assets/OverView.jpg)
 2. **Product & Seller Performance** – Freight vs Price scatter, top categories, seller by state.  
-![Product & Seller Performance](Assets/Product&SellerPerformance.jpg)
+![Product & Seller Performance](./Assets/Product&SellerPerformance.jpg)
 3. **Product Pareto** – 80/20 to focus on impact categories.  
-![Product Pareto](Assets/CategorySale.jpg)
+![Product Pareto](./Assets/CategorySale.jpg)
 4. **Customer Insights** – Total customers, new vs return, geo distribution.  
-![Customer Insights](Assets/CustomerInsight.jpg)
+![Customer Insights](./Assets/CustomerInsight.jpg)
 5. **Customer Cohort** – Retention by cohort month (0–12). 
-![Customer Cohort](Assets/CustomerCohort.jpg) 
+![Customer Cohort](./Assets/CustomerCohort.jpg) 
 6. **Review & Delivery Performance** – Review score, delivery days & status, avg score trend.
-![Review & Delivery Performance](Assets/Review&DeliveryPerfomance.jpg)
+![Review & Delivery Performance](./Assets/Review&DeliveryPerfomance.jpg)
 
 ---
 
@@ -65,59 +65,11 @@ Architecture follows a **Star Schema** and UX is designed around **Cards → Tre
 
 ---
 
-## Key DAX (Some samples)
-
-```DAX
--- Sales Pareto (by Product Category)
-Sales Pareto % =
-VAR _Total =
-    CALCULATE ( [Gross Sales], ALLSELECTED ( Dim_product_category_name_translation[product_category_name_english] ) )
-VAR _Current = [Gross Sales]
-VAR _SumTable =
-    SUMMARIZE (
-        ALLSELECTED ( Fact_order_items_dataset ),
-        Dim_product_category_name_translation[product_category_name_english],
-        "Sales", [Gross Sales]
-    )
-VAR _Cum =
-    SUMX ( FILTER ( _SumTable, [Sales] >= _Current ), [Sales] )
-RETURN DIVIDE ( _Cum, _Total )
-
--- Return Customers (flag)
-Return Customers =
-VAR curr_date = MAX ( Fact_orders_dataset[order_purchase_timestamp] )
-VAR custs = VALUES ( Dim_customers_dataset[customer_unique_id] )
-RETURN
-SUMX (
-    custs,
-    IF (
-        CALCULATE ( [Total Customers], Fact_orders_dataset[order_purchase_timestamp] < curr_date ) > 0,
-        1, 0
-    )
-)
-
--- Customer Retention for Cohort %
-Customer Retention for Cohort % =
-VAR after_month = SELECTEDVALUE ( Customer[Value] )        -- 0..12
-VAR cohort_first = SELECTEDVALUE ( Dim_customers_dataset[Cohort First Month] )
-RETURN
-DIVIDE (
-    CALCULATE (
-        DISTINCTCOUNT ( Dim_customers_dataset[customer_unique_id] ),
-        FILTER (
-            Fact_orders_dataset,
-            EOMONTH ( Fact_orders_dataset[order_purchase_timestamp], 0 )
-                = EOMONTH ( cohort_first, after_month )
-        )
-    ),
-    DISTINCTCOUNT ( Dim_customers_dataset[customer_unique_id] )
-)
-
 ## Repository Structure
-release/
-  └─ BI.pbix
-Assets/
-  ├─ DataModel.jpg
-  ├─ Overview.jpg
-  └─ ...
-data/
+release/  
+  └─ BI.pbix  
+./Assets/  
+  ├─ DataModel.jpg  
+  ├─ Overview.jpg  
+  └─ ...  
+data/  
